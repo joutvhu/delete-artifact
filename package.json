@@ -2,17 +2,36 @@
   "name": "delete-artifact",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "npm run clean && tsc --project tsconfig.json",
+    "release": "ncc build src/delete-artifact.ts -o action && git add -f action/",
+    "clean": "rimraf -- action"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "Actions",
+    "GitHub",
+    "Artifacts",
+    "Delete"
+  ],
+  "author": {
+    "name": "Giao Ho",
+    "email": "joutvhu@gmail.com",
+    "url": "https://github.com/joutvhu"
+  },
   "license": "MIT",
+  "homepage": "https://github.com/joutvhu/delete-artifact#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/joutvhu/delete-artifact.git"
+  },
+  "bugs": {
+    "url": "https://github.com/joutvhu/delete-artifact/issues"
+  },
   "dependencies": {
     "@actions/artifact": "^0.5.0",
     "@actions/core": "^1.2.6",
-    "@actions/http-client": "^1.0.11"
+    "@actions/http-client": "^1.0.11",
+    "tslib": "^2.1.0"
   },
   "devDependencies": {
     "@tsconfig/recommended": "^1.0.1",

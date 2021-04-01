@@ -1,2 +1,3 @@
-# delete-artifact
+# Delete artifacts
+
 GitHub Action to delete artifacts

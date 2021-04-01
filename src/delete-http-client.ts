@@ -16,6 +16,8 @@ import {
 } from '@actions/artifact/lib/internal/utils';
 import * as core from '@actions/core';
 import {IHeaders, IHttpClientResponse} from '@actions/http-client/interfaces';
+import {performance} from 'perf_hooks';
+import {URL} from 'url';
 
 export const DELETE_CONCURRENCY = 2;
 
@@ -105,7 +107,7 @@ export class DeleteHttpClient {
         this.statusReporter.setTotalNumberOfFilesToProcess(deleteItems.length);
         this.statusReporter.start();
 
-        await Promise.all(parallelDeletes.map(async index => {
+        await Promise.all(parallelDeletes.map(async (index: number) => {
             for (const artifactLocation of deleteItems) {
                 const startTime = performance.now();
                 await this.deleteIndividualFile(index, artifactLocation);

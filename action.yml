@@ -1,0 +1,13 @@
+name: Delete a Build Artifact
+description: Delete a build artifact that was previously uploaded in the workflow by the upload-artifact action
+author: Giao Ho
+inputs:
+  name:
+    description: The name of the artifact to delete, multiple names can be supplied on new lines.
+    required: false
+runs:
+  using: node12
+  main: action/index.js
+branding:
+  icon: trash-2
+  color: red
