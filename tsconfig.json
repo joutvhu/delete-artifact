@@ -1,0 +1,42 @@
+{
+  "extends": "@tsconfig/recommended/tsconfig.json",
+  "compileOnSave": false,
+  "compilerOptions": {
+    "baseUrl": ".",
+    "rootDir": "./src",
+    "outDir": "./lib",
+    "sourceMap": false,
+    "composite": false,
+    "declaration": true,
+    "incremental": false,
+    "alwaysStrict": true,
+    "importHelpers": true,
+    "noUnusedLocals": true,
+    "removeComments": false,
+    "esModuleInterop": true,
+    "strictNullChecks": true,
+    "resolveJsonModule": true,
+    "downlevelIteration": true,
+    "noUnusedParameters": true,
+    "experimentalDecorators": true,
+    "moduleResolution": "node",
+    "target": "es2015",
+    "module": "commonjs",
+    "lib": [
+      "es2016",
+      "es2017",
+      "es2018",
+      "esnext"
+    ],
+    "paths": {
+    }
+  },
+  "include": [
+    "./src/**/*"
+  ],
+  "exclude": [
+    "./node_modules",
+    "src/**/*.spec.ts",
+    "src/**/*.test.ts"
+  ]
+}

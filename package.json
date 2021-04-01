@@ -1,0 +1,25 @@
+{
+  "name": "delete-artifact",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@actions/artifact": "^0.5.0",
+    "@actions/core": "^1.2.6",
+    "@actions/http-client": "^1.0.11"
+  },
+  "devDependencies": {
+    "@tsconfig/recommended": "^1.0.1",
+    "@types/node": "^14.14.37",
+    "@vercel/ncc": "^0.27.0",
+    "eslint": "^7.23.0",
+    "rimraf": "^3.0.2",
+    "typescript": "^4.2.3"
+  }
+}
