@@ -117,13 +117,13 @@ export class DeleteHttpClient {
                     try {
                         await this.deleteIndividualArtifact(index, artifact);
 
-                        result[artifact.name] = {
+                        result.artifacts[artifact.name] = {
                             status: 'success'
                         };
                         result.deleted.count++;
                         result.deleted.names.push(artifact.name);
                     } catch (e) {
-                        result[artifact.name] = {
+                        result.artifacts[artifact.name] = {
                             status: 'fail'
                         };
                         result.failed.count++;
