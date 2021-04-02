@@ -1,0 +1,21 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Action Testing
+
+# Controls when the action will run.
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create test file
+        run: echo Hello, world! > hello.txt
+      - uses: actions/upload-artifact@v2
+        with:
+          name: test-artifact
+          path: hello.txt
+      - uses: joutvhu/delete-artifact@v1
+        with:
+          name: test-artifact
