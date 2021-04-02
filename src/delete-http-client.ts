@@ -1,5 +1,5 @@
 import {getRetryLimit} from '@actions/artifact/lib/internal/config-variables';
-import {ListArtifactsResponse, QueryArtifactResponse} from '@actions/artifact/lib/internal/contracts';
+import {ArtifactResponse, ListArtifactsResponse} from '@actions/artifact/lib/internal/contracts';
 import {HttpManager} from '@actions/artifact/lib/internal/http-manager';
 import {retryHttpClientRequest} from '@actions/artifact/lib/internal/requestUtils';
 import {StatusReporter} from '@actions/artifact/lib/internal/status-reporter';
@@ -17,7 +17,6 @@ import {
 import * as core from '@actions/core';
 import {IHeaders, IHttpClientResponse} from '@actions/http-client/interfaces';
 import {performance} from 'perf_hooks';
-import {URL} from 'url';
 
 export const DELETE_CONCURRENCY = 2;
 
@@ -41,6 +40,23 @@ export function getDeleteHeaders(
     return requestOptions;
 }
 
+export interface DeleteArtifactStatus {
+    status: 'success' | 'fail';
+}
+
+export interface DeleteArtifactsResponse {
+    failed: {
+        count: number;
+        names: string[];
+    };
+    deleted: {
+        count: number;
+        names: string[];
+    };
+    artifacts: {
+        [name: string]: DeleteArtifactStatus;
+    }
+}
 
 export class DeleteHttpClient {
     private deleteHttpManager: HttpManager;
@@ -69,75 +85,81 @@ export class DeleteHttpClient {
         return JSON.parse(body);
     }
 
-    /**
-     * Fetches a set of container items that describe the contents of an artifact
-     * @param artifactName the name of the artifact
-     * @param containerUrl the artifact container URL for the run
-     */
-    async getContainerItems(
-        artifactName: string,
-        containerUrl: string
-    ): Promise<QueryArtifactResponse> {
-        // the itemPath search parameter controls which containers will be returned
-        const resourceUrl = new URL(containerUrl);
-        resourceUrl.searchParams.append('itemPath', artifactName);
+    async deleteArtifacts(artifacts: ArtifactResponse[]): Promise<DeleteArtifactsResponse> {
+        // limit the number of artifacts deleted at a single time
+        core.debug(`Delete artifact concurrency is set to ${DELETE_CONCURRENCY}`);
+        const parallelDeletes = [...new Array(DELETE_CONCURRENCY).keys()];
+        const deletingArtifacts: Set<ArtifactResponse> = new Set<ArtifactResponse>();
+        const result: DeleteArtifactsResponse = {
+            failed: {
+                count: 0,
+                names: []
+            },
+            deleted: {
+                count: 0,
+                names: []
+            },
+            artifacts: {}
+        };
 
-        // use the first client from the httpManager, `keep-alive` is not used so the connection will close immediately
-        const client = this.deleteHttpManager.getClient(0);
-        const headers = getDeleteHeaders('application/json');
-        const response = await retryHttpClientRequest(
-            'Get Container Items',
-            async () => client.get(resourceUrl.toString(), headers)
-        );
-        const body: string = await response.readBody();
-        return JSON.parse(body);
-    }
+        core.info(`Total number of artifacts that will be deleted: ${artifacts.length}`);
 
-    async deleteSingleArtifact(deleteItems: string[]): Promise<void> {
-        // limit the number of files deleted at a single time
-        core.debug(`Delete file concurrency is set to ${DELETE_CONCURRENCY}`);
-        let parallelDeletes: any = (new Array(DELETE_CONCURRENCY).keys());
-        parallelDeletes = [...parallelDeletes];
-        let deletedFiles = 0;
-
-        core.info(
-            `Total number of files that will be deleted: ${deleteItems.length}`
-        );
-
-        this.statusReporter.setTotalNumberOfFilesToProcess(deleteItems.length);
+        this.statusReporter.setTotalNumberOfFilesToProcess(artifacts.length);
         this.statusReporter.start();
 
-        await Promise.all(parallelDeletes.map(async (index: number) => {
-            for (const artifactLocation of deleteItems) {
-                const startTime = performance.now();
-                await this.deleteIndividualFile(index, artifactLocation);
+        try {
+            await Promise.all(parallelDeletes.map(async (index: number) => {
+                for (const artifact of artifacts) {
+                    if (deletingArtifacts.has(artifact)) continue;
+                    else deletingArtifacts.add(artifact);
 
-                if (core.isDebug()) {
-                    core.debug(
-                        `File: ${++deletedFiles}/${deleteItems.length}. ${
-                            artifactLocation
-                        } took ${(performance.now() - startTime).toFixed(
-                            3
-                        )} milliseconds to finish delete`
-                    );
+                    const startTime = performance.now();
+                    try {
+                        await this.deleteIndividualArtifact(index, artifact);
+
+                        result[artifact.name] = {
+                            status: 'success'
+                        };
+                        result.deleted.count++;
+                        result.deleted.names.push(artifact.name);
+                    } catch (e) {
+                        result[artifact.name] = {
+                            status: 'fail'
+                        };
+                        result.failed.count++;
+                        result.failed.names.push(artifact.name);
+                        continue;
+                    }
+
+                    if (core.isDebug()) {
+                        core.debug(
+                            `Artifact: ${result.deleted.count}/${artifacts.length}. ${
+                                artifact.name
+                            } took ${(performance.now() - startTime).toFixed(
+                                3
+                            )} milliseconds to finish delete`
+                        );
+                    }
+
+                    this.statusReporter.incrementProcessedCount();
+
+                    core.info(`Artifact ${artifact.name} was deleted`);
                 }
+            }));
+        } catch (error) {
+            throw new Error(`Unable to delete the artifact: ${error}`);
+        } finally {
+            this.statusReporter.stop();
+            // safety dispose all connections
+            this.deleteHttpManager.disposeAndReplaceAllClients();
+        }
 
-                this.statusReporter.incrementProcessedCount();
-            }
-        }))
-            .catch(error => {
-                throw new Error(`Unable to delete the artifact: ${error}`);
-            })
-            .finally(() => {
-                this.statusReporter.stop();
-                // safety dispose all connections
-                this.deleteHttpManager.disposeAndReplaceAllClients();
-            });
+        return result;
     }
 
-    private async deleteIndividualFile(
+    private async deleteIndividualArtifact(
         httpClientIndex: number,
-        artifactLocation: string
+        artifact: ArtifactResponse
     ): Promise<void> {
         let retryCount = 0;
         const retryLimit = getRetryLimit();
@@ -145,15 +167,13 @@ export class DeleteHttpClient {
 
         const makeDeleteRequest = async (): Promise<IHttpClientResponse> => {
             const client = this.deleteHttpManager.getClient(httpClientIndex);
-            return await client.del(artifactLocation, headers);
+            return await client.del(artifact.url, headers);
         };
 
         const backOff = async (retryAfterValue?: number): Promise<void> => {
             retryCount++;
             if (retryCount > retryLimit) {
-                return Promise.reject(
-                    new Error(`Retry limit has been reached. Unable to delete ${artifactLocation}`)
-                );
+                throw new Error(`Retry limit has been reached. Unable to delete ${artifact.name}`);
             } else {
                 this.deleteHttpManager.disposeAndReplaceClient(httpClientIndex);
                 if (retryAfterValue) {
@@ -178,7 +198,7 @@ export class DeleteHttpClient {
             }
         };
 
-        // keep trying to delete a file until a retry limit has been reached
+        // keep trying to delete an artifact until a retry limit has been reached
         while (retryCount <= retryLimit) {
             let response: IHttpClientResponse;
             try {
@@ -188,7 +208,7 @@ export class DeleteHttpClient {
                 }
             } catch (error) {
                 // if an error is caught, it is usually indicative of a timeout so retry the delete
-                core.info('An error occurred while attempting to delete a file');
+                core.info('An error occurred while attempting to delete an artifact');
                 // eslint-disable-next-line no-console
                 console.log(error);
 
@@ -210,9 +230,7 @@ export class DeleteHttpClient {
             } else {
                 // Some unexpected response code, fail immediately and stop the delete
                 displayHttpDiagnostics(response);
-                return Promise.reject(
-                    new Error(`Unexpected http ${response.message.statusCode} during delete for ${artifactLocation}`)
-                );
+                throw new Error(`Unexpected http ${response.message.statusCode} during delete for ${artifact.name}`);
             }
         }
     }
