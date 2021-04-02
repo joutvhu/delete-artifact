@@ -2207,6 +2207,7 @@ class DeleteHttpClient {
                     continue;
                 }
                 if (utils_1.isSuccessStatusCode(response.message.statusCode)) {
+                    yield response.readBody();
                     return;
                 }
                 else if (utils_1.isRetryableStatusCode(response.message.statusCode)) {
