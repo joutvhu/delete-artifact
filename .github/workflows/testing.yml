@@ -18,10 +18,38 @@ jobs:
         run: npm install
       - name: Create test file
         run: echo Hello, world! > hello.txt
-      - uses: actions/upload-artifact@v2
+
+      - name: Upload single artifact
+        uses: actions/upload-artifact@v2
         with:
-          name: test-artifact
+          name: test-single-artifact
           path: hello.txt
-      - uses: ./
+      - name: Detele single artifact
+        uses: ./
         with:
-          name: test-artifact
+          name: test-single-artifact
+
+      - name: Upload artifact m1
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-m1-artifact
+          path: hello.txt
+      - name: Upload artifact m2
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-m2-artifact
+          path: hello.txt
+      - name: Detele multiple artifact
+        uses: ./
+        with:
+          name: |
+            test-m1-artifact
+            test-m2-artifact
+
+      - name: Upload artifact m3
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-m3-artifact
+          path: hello.txt
+      - name: Detele all artifact
+        uses: ./
