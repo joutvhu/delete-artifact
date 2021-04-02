@@ -42,6 +42,9 @@ export function getDeleteHeaders(
 
 export interface DeleteArtifactStatus {
     status: 'success' | 'fail';
+    containerId: string;
+    size: number;
+    type: string;
 }
 
 export interface DeleteArtifactsResponse {
@@ -115,16 +118,22 @@ export class DeleteHttpClient {
 
                     const startTime = performance.now();
                     try {
-                        await this.deleteIndividualArtifact(index, artifact);
+                        await this.deleteSingleArtifact(index, artifact);
 
                         result.artifacts[artifact.name] = {
-                            status: 'success'
+                            status: 'success',
+                            size: artifact.size,
+                            type: artifact.type,
+                            containerId: artifact.containerId
                         };
                         result.deleted.count++;
                         result.deleted.names.push(artifact.name);
                     } catch (e) {
                         result.artifacts[artifact.name] = {
-                            status: 'fail'
+                            status: 'fail',
+                            size: artifact.size,
+                            type: artifact.type,
+                            containerId: artifact.containerId
                         };
                         result.failed.count++;
                         result.failed.names.push(artifact.name);
@@ -157,7 +166,7 @@ export class DeleteHttpClient {
         return result;
     }
 
-    private async deleteIndividualArtifact(
+    private async deleteSingleArtifact(
         httpClientIndex: number,
         artifact: ArtifactResponse
     ): Promise<void> {

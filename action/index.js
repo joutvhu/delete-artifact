@@ -2125,16 +2125,22 @@ class DeleteHttpClient {
                             deletingArtifacts.add(artifact);
                         const startTime = perf_hooks_1.performance.now();
                         try {
-                            yield this.deleteIndividualArtifact(index, artifact);
+                            yield this.deleteSingleArtifact(index, artifact);
                             result.artifacts[artifact.name] = {
-                                status: 'success'
+                                status: 'success',
+                                size: artifact.size,
+                                type: artifact.type,
+                                containerId: artifact.containerId
                             };
                             result.deleted.count++;
                             result.deleted.names.push(artifact.name);
                         }
                         catch (e) {
                             result.artifacts[artifact.name] = {
-                                status: 'fail'
+                                status: 'fail',
+                                size: artifact.size,
+                                type: artifact.type,
+                                containerId: artifact.containerId
                             };
                             result.failed.count++;
                             result.failed.names.push(artifact.name);
@@ -2158,7 +2164,7 @@ class DeleteHttpClient {
             return result;
         });
     }
-    deleteIndividualArtifact(httpClientIndex, artifact) {
+    deleteSingleArtifact(httpClientIndex, artifact) {
         return __awaiter(this, void 0, void 0, function* () {
             let retryCount = 0;
             const retryLimit = config_variables_1.getRetryLimit();
