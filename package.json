@@ -1,6 +1,6 @@
 {
   "name": "delete-artifact",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Delete a build artifact that was previously uploaded in the workflow by the upload-artifact action",
   "scripts": {
     "build": "npm run clean && tsc --project tsconfig.json",
