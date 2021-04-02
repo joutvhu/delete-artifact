@@ -218,7 +218,6 @@ export class DeleteHttpClient {
             } catch (error) {
                 // if an error is caught, it is usually indicative of a timeout so retry the delete
                 core.info('An error occurred while attempting to delete an artifact');
-                // eslint-disable-next-line no-console
                 console.log(error);
 
                 // increment the retryCount and use exponential backoff to wait before making the next request
@@ -227,6 +226,7 @@ export class DeleteHttpClient {
             }
 
             if (isSuccessStatusCode(response.message.statusCode)) {
+                await response.readBody();
                 return;
             } else if (isRetryableStatusCode(response.message.statusCode)) {
                 core.info(`A ${
