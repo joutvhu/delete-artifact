@@ -1,0 +1,30 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Release Testing
+
+# Controls when the action will run.
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - name: Install packages
+        run: npm install
+      - name: Create test file
+        run: echo Hello, world! > hello.txt
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-artifact
+          path: hello.txt
+      - name: Detele artifact
+        uses: joutvhu/delete-artifact@v1
+        with:
+          name: test-artifact
