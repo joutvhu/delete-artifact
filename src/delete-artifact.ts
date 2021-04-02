@@ -1,6 +1,7 @@
 import {ListArtifactsResponse} from '@actions/artifact/lib/internal/contracts';
 import * as core from '@actions/core';
-import {DeleteHttpClient} from './delete-http-client';
+import {Outputs} from './constants';
+import {DeleteArtifactsResponse, DeleteHttpClient} from './delete-http-client';
 import {DeleteInputs, getInputs} from './input-helper';
 
 (async function run(): Promise<void> {
@@ -30,29 +31,11 @@ import {DeleteInputs, getInputs} from './input-helper';
             }
         }
 
-        for (const artifact of artifactsToDelete) {
-            // Get container entries for the specific artifact
-            const items = await deleteHttpClient.getContainerItems(
-                artifact.name,
-                artifact.fileContainerResourceUrl
-            );
+        const response: DeleteArtifactsResponse = await deleteHttpClient.deleteArtifacts(artifactsToDelete);
 
-            const filesToDelete = items.value
-                .filter(entry =>
-                    entry.path.startsWith(`${artifact.name}/`) ||
-                    entry.path.startsWith(`${artifact.name}\\`))
-                .filter(entry => entry.itemType === 'file')
-                .filter(entry => entry.fileLength !== 0)
-                .map(entry => entry.contentLocation);
-
-            if (filesToDelete.length === 0) {
-                core.info(`No deletable files were found for any artifact ${artifact.name}`);
-            } else {
-                await deleteHttpClient.deleteSingleArtifact(filesToDelete);
-                core.info(`Artifact ${artifact.name} was deleted`);
-            }
-        }
-
+        core.setOutput(Outputs.Failed, response[Outputs.Failed]);
+        core.setOutput(Outputs.Deleted, response[Outputs.Deleted]);
+        core.setOutput(Outputs.Artifacts, response[Outputs.Artifacts]);
         core.info('Artifact delete has finished successfully');
     } catch (err) {
         core.setFailed(err.message);
