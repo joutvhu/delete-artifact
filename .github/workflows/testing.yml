@@ -10,12 +10,18 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - name: Install packages
+        run: npm install
       - name: Create test file
         run: echo Hello, world! > hello.txt
       - uses: actions/upload-artifact@v2
         with:
           name: test-artifact
           path: hello.txt
-      - uses: joutvhu/delete-artifact@v1
+      - uses: ./
         with:
           name: test-artifact
