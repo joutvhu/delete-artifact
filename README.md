@@ -1,4 +1,4 @@
-# Delete artifacts
+# Delete Artifacts
 
 This GitHub Action to delete artifacts from your build. This can be useful when you want to clean up artifacts that are no longer needed.
 
