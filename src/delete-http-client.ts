@@ -15,7 +15,8 @@ import {
     tryGetRetryAfterValueTimeInMilliseconds
 } from '@actions/artifact/lib/internal/utils';
 import * as core from '@actions/core';
-import {IHeaders, IHttpClientResponse} from '@actions/http-client/interfaces';
+import {HttpClientResponse} from '@actions/http-client';
+import {OutgoingHttpHeaders} from 'http';
 import {performance} from 'perf_hooks';
 
 export const DELETE_CONCURRENCY = 2;
@@ -23,8 +24,8 @@ export const DELETE_CONCURRENCY = 2;
 export function getDeleteHeaders(
     contentType: string,
     isKeepAlive?: boolean
-): IHeaders {
-    const requestOptions: IHeaders = {};
+): OutgoingHttpHeaders {
+    const requestOptions: OutgoingHttpHeaders = {};
 
     if (contentType) {
         requestOptions['Content-Type'] = contentType;
@@ -174,7 +175,7 @@ export class DeleteHttpClient {
         const retryLimit = getRetryLimit();
         const headers = getDeleteHeaders('application/json', true);
 
-        const makeDeleteRequest = async (): Promise<IHttpClientResponse> => {
+        const makeDeleteRequest = async (): Promise<HttpClientResponse> => {
             const client = this.deleteHttpManager.getClient(httpClientIndex);
             return await client.del(artifact.url, headers);
         };
@@ -209,7 +210,7 @@ export class DeleteHttpClient {
 
         // keep trying to delete an artifact until a retry limit has been reached
         while (retryCount <= retryLimit) {
-            let response: IHttpClientResponse;
+            let response: HttpClientResponse;
             try {
                 response = await makeDeleteRequest();
                 if (core.isDebug()) {
