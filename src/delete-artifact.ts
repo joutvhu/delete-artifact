@@ -37,7 +37,7 @@ import {DeleteInputs, getInputs} from './input-helper';
         core.setOutput(Outputs.Deleted, response[Outputs.Deleted]);
         core.setOutput(Outputs.Artifacts, response[Outputs.Artifacts]);
         core.info('Artifact delete has finished successfully');
-    } catch (err) {
+    } catch (err: any) {
         core.setFailed(err.message);
     }
 })();
