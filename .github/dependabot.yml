@@ -13,6 +13,7 @@ updates:
       - "joutvhu"
     ignore:
       - dependency-name: "@types/node"
+      - dependency-name: "@actions/artifact"
     labels:
       - "dependency"
     target-branch: "develop"
