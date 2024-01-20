@@ -2,6 +2,23 @@ name: Delete Build Artifact
 description: Delete a build artifact that was previously uploaded in the workflow by the upload-artifact action
 author: Giao Ho
 inputs:
+  owner:
+    # Default: Current owner
+    description: The name of the owner of the repo. Used to identify the owner of the repository.
+    required: false
+  repo:
+    # Default: Current repository
+    description: The name of the repository. Used to identify the repository on which to release.
+    required: false
+  runId:
+    description: WorkflowRun of the artifact(s) to lookup
+    required: false
+  token:
+    description: Token with actions:read permissions
+    required: false
+  latest:
+    description: Filter the workflow run's artifacts to the latest by name In the case of reruns, this can be useful to avoid duplicates
+    required: false
   name:
     description: The name of the artifact to delete, multiple names can be supplied on new lines.
     required: false

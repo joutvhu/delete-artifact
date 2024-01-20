@@ -4,6 +4,15 @@ This GitHub Action to delete artifacts from your build. This can be useful when 
 
 See also [upload-artifact](https://github.com/actions/upload-artifact).
 
+## v2 - What's new
+
+> [!IMPORTANT]
+> delete-artifact@v2 is not currently supported on GHES yet. If you are on GHES, you must use [v1](https://github.com/joutvhu/delete-artifact/releases/tag/v1).
+
+If the artifacts are uploaded using actions/upload-artifact@v3- then use joutvhu/delete-artifact@v1
+
+If the artifacts are uploaded using actions/upload-artifact@v4+ then use joutvhu/delete-artifact@v2
+
 ## Usage
 
 See [action.yml](action.yml)
@@ -12,9 +21,7 @@ See [action.yml](action.yml)
 
 ```yaml
 steps:
-- uses: actions/checkout@v2
-
-- uses: joutvhu/delete-artifact@v1
+- uses: joutvhu/delete-artifact@v2
   with:
     name: my-artifact
 ```
@@ -25,9 +32,7 @@ Deleting multiple artifacts within a single action can be achieved by specifying
 
 ```yaml
 steps:
-- uses: actions/checkout@v2
-
-- uses: joutvhu/delete-artifact@v1
+- uses: joutvhu/delete-artifact@v2
   with:
     name: |
       artifact-1
@@ -40,7 +45,5 @@ If you don't specify an artifact `name` this Action will be deleted all found ar
 
 ```yaml
 steps:
-- uses: actions/checkout@v2
-
-- uses: joutvhu/delete-artifact@v1
+- uses: joutvhu/delete-artifact@v2
 ```
