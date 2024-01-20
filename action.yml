@@ -3,24 +3,28 @@ description: Delete a build artifact that was previously uploaded in the workflo
 author: Giao Ho
 inputs:
   owner:
-    # Default: Current owner
-    description: The name of the owner of the repo. Used to identify the owner of the repository.
+    description: The name of the owner of the repo, this is the repository that artifacts will be deleted from. Default is current owner.
     required: false
   repo:
-    # Default: Current repository
-    description: The name of the repository. Used to identify the repository on which to release.
+    description: The name of the repository, this is the repository that artifacts will be deleted from. Default is current repository.
     required: false
-  runId:
-    description: WorkflowRun of the artifact(s) to lookup
+  run-id:
+    description: 'The id of the workflow run where the desired delete artifact was uploaded from.
+      If github-token is specified, this is the run that artifacts will be deleted from.'
     required: false
   token:
-    description: Token with actions:read permissions
+    description: 'The GitHub token used to authenticate with the GitHub API.
+      This is required when deleting artifacts from a different repository or from a different workflow run.
+      If this is not specified, the action will attempt to delete artifacts from the current repository and the current workflow run.'
     required: false
   latest:
     description: Filter the workflow run's artifacts to the latest by name In the case of reruns, this can be useful to avoid duplicates
     required: false
   name:
     description: The name of the artifact to delete, multiple names can be supplied on new lines.
+    required: false
+  pattern:
+    description: A glob pattern matching the artifacts that should be deleted. Ignored if name is specified.
     required: false
 runs:
   using: node20

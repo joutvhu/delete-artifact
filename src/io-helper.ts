@@ -1,6 +1,7 @@
 import * as core from '@actions/core';
 import {InputOptions} from '@actions/core';
 import {Inputs, Outputs} from './constants';
+import {Minimatch} from 'minimatch';
 
 export class DeleteInputs {
   public owner?: string;
@@ -13,13 +14,14 @@ export class DeleteInputs {
    * The name of the artifacts that will be deleted
    */
   public artifactNames: string[];
+  public pattern?: Minimatch;
 
   constructor(artifactNames: string[] = []) {
     this.artifactNames = artifactNames;
   }
 
-  public get deleteAll(): boolean {
-    return this.artifactNames == null || this.artifactNames.length === 0;
+  public get hasNames(): boolean {
+    return this.artifactNames != null && this.artifactNames.length > 0;
   }
 }
 
@@ -38,8 +40,19 @@ export function getBooleanInput(name: string, options?: InputOptions): boolean {
  * Helper to get all the inputs for the action
  */
 export function getInputs(): DeleteInputs {
-  const names = core.getInput(Inputs.Name, {required: false});
   const result: DeleteInputs = new DeleteInputs();
+
+  const names = core.getInput(Inputs.Name, {required: false});
+  if (names != null && names.length > 0) {
+    result.artifactNames = names
+      .split(/\r?\n/)
+      .map(name => name.trim())
+      .filter(name => name.length > 0);
+  }
+
+  const pattern = core.getInput(Inputs.Pattern, {required: false});
+  if (isNotBlank(pattern))
+    result.pattern = new Minimatch(pattern);
 
   const owner = core.getInput(Inputs.Owner, {required: false});
   if (isNotBlank(owner))
@@ -58,13 +71,6 @@ export function getInputs(): DeleteInputs {
     result.token = token;
 
   result.latest = getBooleanInput(Inputs.Latest, {required: false});
-
-  if (names != null && names.length > 0) {
-    result.artifactNames = names
-      .split(/\r?\n/)
-      .map(name => name.trim())
-      .filter(name => name.length > 0);
-  }
 
   return result;
 }
