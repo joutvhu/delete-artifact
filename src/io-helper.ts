@@ -1,8 +1,6 @@
 import * as core from '@actions/core';
 import {InputOptions} from '@actions/core';
 import {Inputs, Outputs} from './constants';
-import {FindOptions, ListArtifactsOptions} from '@actions/artifact';
-import {context} from '@actions/github';
 
 export class DeleteInputs {
   public owner?: string;
@@ -22,38 +20,6 @@ export class DeleteInputs {
 
   public get deleteAll(): boolean {
     return this.artifactNames == null || this.artifactNames.length === 0;
-  }
-
-  public get findOptions(): FindOptions {
-    const options: ListArtifactsOptions & FindOptions = {};
-    if (isNotBlank(this.runId) && isNotBlank(this.token)) {
-      options.findBy = {
-        token: this.token as string,
-        repositoryOwner: this.owner ?? context.repo.owner,
-        repositoryName: this.repo ?? context.repo.repo,
-        workflowRunId: this.runId as number
-      };
-    }
-    if (this.latest != null) {
-      options.latest = this.latest;
-    }
-    return options;
-  }
-
-  public get listOptions(): ListArtifactsOptions & FindOptions {
-    const options: ListArtifactsOptions & FindOptions = {};
-    if (isNotBlank(this.runId) && isNotBlank(this.token)) {
-      options.findBy = {
-        token: this.token as string,
-        repositoryOwner: this.owner ?? context.repo.owner,
-        repositoryName: this.repo ?? context.repo.repo,
-        workflowRunId: this.runId as number
-      };
-    }
-    if (this.latest != null) {
-      options.latest = this.latest;
-    }
-    return options;
   }
 }
 
