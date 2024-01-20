@@ -74,7 +74,6 @@ export interface DeleteResponse {
     await Promise.all(artifactsToDelete.map(async (value) => {
       try {
         await artifact.deleteArtifact(value.name, findOptions);
-        core.info(`Artifact ${value.name} was deleted`);
         result.artifacts[value.name] = {
           ...value,
           status: 'success'
@@ -82,7 +81,6 @@ export interface DeleteResponse {
         result.deleted.count++;
         result.deleted.names.push(value.name);
       } catch (e) {
-        core.info(`Deleting artifact ${value.name} failed`);
         result.artifacts[value.name] = {
           ...value,
           status: 'fail'
