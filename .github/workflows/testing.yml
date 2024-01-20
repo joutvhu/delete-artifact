@@ -7,109 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  test2:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Install packages
-        run: npm install
-
-      - name: Create test file
-        run: echo Hello, world! > hello.txt
-
-      - name: Upload single artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: test-single-artifact
-          path: hello.txt
-      - name: Detele single artifact
-        uses: ./
-        with:
-          name: test-single-artifact
-
-      - name: Upload artifact m1
-        uses: actions/upload-artifact@v2
-        with:
-          name: test-m1-artifact
-          path: hello.txt
-      - name: Upload artifact m2
-        uses: actions/upload-artifact@v2
-        with:
-          name: test-m2-artifact
-          path: hello.txt
-      - name: Detele multiple artifact
-        uses: ./
-        with:
-          name: |
-            test-m1-artifact
-            test-m2-artifact
-
-      - name: Upload artifact m3
-        uses: actions/upload-artifact@v2
-        with:
-          name: test-m3-artifact
-          path: hello.txt
-
-      - name: Detele all artifact
-        uses: ./
-
-  test3:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Install packages
-        run: npm install
-
-      - name: Create test file
-        run: echo Hello, world! > hello.txt
-
-      - name: Upload single artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: test-single-artifact
-          path: hello.txt
-      - name: Detele single artifact
-        uses: ./
-        with:
-          name: test-single-artifact
-
-      - name: Upload artifact m1
-        uses: actions/upload-artifact@v3
-        with:
-          name: test-m1-artifact
-          path: hello.txt
-      - name: Upload artifact m2
-        uses: actions/upload-artifact@v3
-        with:
-          name: test-m2-artifact
-          path: hello.txt
-      - name: Detele multiple artifact
-        uses: ./
-        with:
-          name: |
-            test-m1-artifact
-            test-m2-artifact
-
-      - name: Upload artifact m3
-        uses: actions/upload-artifact@v3
-        with:
-          name: test-m3-artifact
-          path: hello.txt
-
-      - name: Detele all artifact
-        uses: ./
-
-  test4:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -127,34 +25,34 @@ jobs:
       - name: Upload single artifact
         uses: actions/upload-artifact@v4
         with:
-          name: test-single-artifact
+          name: test4-single-artifact
           path: hello.txt
       - name: Detele single artifact
         uses: ./
         with:
-          name: test-single-artifact
+          name: test4-single-artifact
 
       - name: Upload artifact m1
         uses: actions/upload-artifact@v4
         with:
-          name: test-m1-artifact
+          name: test4-m1-artifact
           path: hello.txt
       - name: Upload artifact m2
         uses: actions/upload-artifact@v4
         with:
-          name: test-m2-artifact
+          name: test4-m2-artifact
           path: hello.txt
       - name: Detele multiple artifact
         uses: ./
         with:
           name: |
-            test-m1-artifact
-            test-m2-artifact
+            test4-m1-artifact
+            test4-m2-artifact
 
       - name: Upload artifact m3
         uses: actions/upload-artifact@v4
         with:
-          name: test-m3-artifact
+          name: test4-m3-artifact
           path: hello.txt
 
       - name: Detele all artifact
