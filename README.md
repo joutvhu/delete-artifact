@@ -4,14 +4,15 @@ This GitHub Action to delete artifacts from your build. This can be useful when 
 
 See also [upload-artifact](https://github.com/actions/upload-artifact).
 
-## v2 - What's new
+## Compatibility
 
 > [!IMPORTANT]
 > delete-artifact@v2 is not currently supported on GHES yet. If you are on GHES, you must use [v1](https://github.com/joutvhu/delete-artifact/releases/tag/v1).
 
-If the artifacts are uploaded using actions/upload-artifact@v3- then use joutvhu/delete-artifact@v1
-
-If the artifacts are uploaded using actions/upload-artifact@v4+ then use joutvhu/delete-artifact@v2
+| actions/upload-artifact | joutvhu/delete-artifact |
+|-------------------------|-------------------------|
+| v1, v2, v3              | v1                      |
+| v4                      | v2                      |
 
 ## Usage
 

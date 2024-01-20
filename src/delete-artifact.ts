@@ -28,10 +28,10 @@ export interface DeleteResponse {
     const findOptions: FindOptions = {};
     if (isNotBlank(inputs.runId) && isNotBlank(inputs.token)) {
       findOptions.findBy = {
-        token: inputs.token as string,
+        token: inputs.token!,
         repositoryOwner: inputs.owner ?? context.repo.owner,
         repositoryName: inputs.repo ?? context.repo.repo,
-        workflowRunId: inputs.runId as number
+        workflowRunId: inputs.runId!
       };
     }
 
@@ -40,12 +40,18 @@ export interface DeleteResponse {
       latest: inputs.latest
     });
 
-    if (list.artifacts.length === 0 && !inputs.deleteAll) {
+    if (list.artifacts.length === 0) {
       throw new Error(`Unable to find any artifacts for the associated workflow`);
     }
 
-    const artifactsToDelete: Artifact[] = inputs.deleteAll ? list.artifacts : list.artifacts
-      .filter(artifact => inputs.artifactNames.includes(artifact.name));
+    let artifactsToDelete: Artifact[] = list.artifacts;
+    if (inputs.hasNames) {
+      artifactsToDelete = list.artifacts
+        .filter(artifact => inputs.artifactNames.includes(artifact.name));
+    } else if (inputs.pattern != null) {
+      artifactsToDelete = list.artifacts
+        .filter(artifact => inputs.pattern!.match(artifact.name));
+    }
 
     if (artifactsToDelete.length !== inputs.artifactNames.length) {
       const artifactNamesToDelete = artifactsToDelete

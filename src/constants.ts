@@ -4,7 +4,8 @@ export enum Inputs {
   RunId = 'runId',
   Token = 'token',
   Latest = 'latest',
-  Name = 'name'
+  Name = 'name',
+  Pattern = 'pattern'
 }
 
 export enum Outputs {
