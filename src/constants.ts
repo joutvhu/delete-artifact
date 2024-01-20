@@ -1,9 +1,14 @@
 export enum Inputs {
-    Name = 'name'
+  Owner = 'owner',
+  Repo = 'repo',
+  RunId = 'runId',
+  Token = 'token',
+  Latest = 'latest',
+  Name = 'name'
 }
 
 export enum Outputs {
-    Failed = 'failed',
-    Deleted = 'deleted',
-    Artifacts = 'artifacts'
+  Failed = 'failed',
+  Deleted = 'deleted',
+  Artifacts = 'artifacts'
 }

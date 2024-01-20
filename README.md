@@ -12,9 +12,7 @@ See [action.yml](action.yml)
 
 ```yaml
 steps:
-- uses: actions/checkout@v2
-
-- uses: joutvhu/delete-artifact@v1
+- uses: joutvhu/delete-artifact@v2
   with:
     name: my-artifact
 ```
@@ -25,9 +23,7 @@ Deleting multiple artifacts within a single action can be achieved by specifying
 
 ```yaml
 steps:
-- uses: actions/checkout@v2
-
-- uses: joutvhu/delete-artifact@v1
+- uses: joutvhu/delete-artifact@v2
   with:
     name: |
       artifact-1
@@ -40,7 +36,5 @@ If you don't specify an artifact `name` this Action will be deleted all found ar
 
 ```yaml
 steps:
-- uses: actions/checkout@v2
-
-- uses: joutvhu/delete-artifact@v1
+- uses: joutvhu/delete-artifact@v2
 ```

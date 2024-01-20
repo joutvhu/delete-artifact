@@ -1,43 +1,100 @@
-import {ListArtifactsResponse} from '@actions/artifact/lib/internal/contracts';
+import artifact, {Artifact, FindOptions, ListArtifactsResponse} from '@actions/artifact';
 import * as core from '@actions/core';
-import {Outputs} from './constants';
-import {DeleteArtifactsResponse, DeleteHttpClient} from './delete-http-client';
-import {DeleteInputs, getInputs} from './input-helper';
+import {context} from '@actions/github';
+import {DeleteInputs, getInputs, isNotBlank, setOutputs} from './io-helper';
+
+export interface DeleteStatus {
+  status: 'success' | 'fail';
+}
+
+export interface DeleteResponse {
+  failed: {
+    count: number;
+    names: string[];
+  };
+  deleted: {
+    count: number;
+    names: string[];
+  };
+  artifacts: {
+    [name: string]: DeleteStatus & Artifact;
+  }
+}
 
 (async function run(): Promise<void> {
-    try {
-        const inputs: DeleteInputs = getInputs();
-        const deleteHttpClient = new DeleteHttpClient();
+  try {
+    const inputs: DeleteInputs = getInputs();
 
-        const artifacts: ListArtifactsResponse = await deleteHttpClient.listArtifacts();
-
-        if (artifacts.count === 0 && !inputs.deleteAll) {
-            throw new Error(`Unable to find any artifacts for the associated workflow`);
-        }
-
-        const artifactsToDelete = artifacts.value
-            .filter(artifact =>
-                inputs.deleteAll ||
-                inputs.artifactNames.includes(artifact.name));
-
-        if (artifactsToDelete.length !== inputs.artifactNames.length) {
-            const artifactNamesToDelete = artifactsToDelete
-                .map(artifact => artifact.name);
-            const notFoundNames = inputs.artifactNames
-                .filter(name => !artifactNamesToDelete.includes(name));
-
-            if (notFoundNames.length > 0) {
-                throw new Error(`Unable to find the following artifacts: ${notFoundNames.join(', ')}`);
-            }
-        }
-
-        const response: DeleteArtifactsResponse = await deleteHttpClient.deleteArtifacts(artifactsToDelete);
-
-        core.setOutput(Outputs.Failed, response[Outputs.Failed]);
-        core.setOutput(Outputs.Deleted, response[Outputs.Deleted]);
-        core.setOutput(Outputs.Artifacts, response[Outputs.Artifacts]);
-        core.info('Artifact delete has finished successfully');
-    } catch (err: any) {
-        core.setFailed(err.message);
+    const findOptions: FindOptions = {};
+    if (isNotBlank(inputs.runId) && isNotBlank(inputs.token)) {
+      findOptions.findBy = {
+        token: inputs.token as string,
+        repositoryOwner: inputs.owner ?? context.repo.owner,
+        repositoryName: inputs.repo ?? context.repo.repo,
+        workflowRunId: inputs.runId as number
+      };
     }
+
+    const list: ListArtifactsResponse = await artifact.listArtifacts({
+      findBy: findOptions.findBy,
+      latest: inputs.latest
+    });
+
+    if (list.artifacts.length === 0 && !inputs.deleteAll) {
+      throw new Error(`Unable to find any artifacts for the associated workflow`);
+    }
+
+    const artifactsToDelete: Artifact[] = inputs.deleteAll ? list.artifacts : list.artifacts
+      .filter(artifact => inputs.artifactNames.includes(artifact.name));
+
+    if (artifactsToDelete.length !== inputs.artifactNames.length) {
+      const artifactNamesToDelete = artifactsToDelete
+        .map(artifact => artifact.name);
+      const notFoundNames = inputs.artifactNames
+        .filter(name => !artifactNamesToDelete.includes(name));
+
+      if (notFoundNames.length > 0) {
+        throw new Error(`Unable to find the following artifacts: ${notFoundNames.join(', ')}`);
+      }
+    }
+
+    core.info(`Total number of artifacts that will be deleted: ${artifactsToDelete.length}`);
+    const result: DeleteResponse = {
+      failed: {
+        count: 0,
+        names: []
+      },
+      deleted: {
+        count: 0,
+        names: []
+      },
+      artifacts: {}
+    };
+
+    await Promise.all(artifactsToDelete.map(async (value) => {
+      try {
+        await artifact.deleteArtifact(value.name, findOptions);
+        core.info(`Artifact ${value.name} was deleted`);
+        result.artifacts[value.name] = {
+          ...value,
+          status: 'success'
+        };
+        result.deleted.count++;
+        result.deleted.names.push(value.name);
+      } catch (e) {
+        core.info(`Deleting artifact ${value.name} failed`);
+        result.artifacts[value.name] = {
+          ...value,
+          status: 'fail'
+        };
+        result.failed.count++;
+        result.failed.names.push(value.name);
+      }
+    }));
+
+    setOutputs(result);
+    core.info('Artifact delete has finished successfully');
+  } catch (err: any) {
+    core.setFailed(err.message);
+  }
 })();
